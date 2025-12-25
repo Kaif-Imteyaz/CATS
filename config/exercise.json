@@ -1,0 +1,152 @@
+[
+  {
+    "id": "1",
+    "name": "Push-ups",
+    "category": "Upper Body",
+    "description": "Strengthen chest, shoulders, and triceps",
+    "target_reps": 15,
+    "config_json": {
+      "down_angle": 90,
+      "up_angle": 160,
+      "keypoints": {
+        "left": [5, 7, 9],
+        "right": [6, 8, 10]
+      }
+    }
+  },
+  {
+    "id": "2",
+    "name": "Squats",
+    "category": "Lower Body",
+    "description": "Strengthen legs and glutes",
+    "target_reps": 20,
+    "config_json": {
+      "down_angle": 80,
+      "up_angle": 170,
+      "keypoints": {
+        "left": [11, 23, 25],
+        "right": [12, 24, 26]
+      }
+    }
+  },
+  {
+    "id": "3",
+    "name": "Shoulder Raises",
+    "category": "Upper Body",
+    "description": "Strengthen shoulder muscles",
+    "target_reps": 12,
+    "config_json": {
+      "down_angle": 30,
+      "up_angle": 100,
+      "keypoints": {
+        "left": [11, 13, 15],
+        "right": [12, 14, 16]
+      }
+    }
+  },
+  {
+    "id": "4",
+    "name": "Lunges",
+    "category": "Lower Body",
+    "description": "Strengthen legs and balance",
+    "target_reps": 10,
+    "config_json": {
+      "down_angle": 90,
+      "up_angle": 170,
+      "keypoints": {
+        "left": [11, 23, 25],
+        "right": [12, 24, 26]
+      }
+    }
+  },
+  {
+    "id": "5",
+    "name": "Bicep Curls",
+    "category": "Upper Body",
+    "description": "Strengthen bicep muscles",
+    "target_reps": 12,
+    "config_json": {
+      "down_angle": 40,
+      "up_angle": 130,
+      "keypoints": {
+        "left": [11, 13, 15],
+        "right": [12, 14, 16]
+      }
+    }
+  },
+  {
+    "id": "6",
+    "name": "Leg Raises",
+    "category": "Lower Body",
+    "description": "Strengthen core and leg muscles",
+    "target_reps": 15,
+    "config_json": {
+      "down_angle": 45,
+      "up_angle": 120,
+      "keypoints": {
+        "left": [23, 25, 27],
+        "right": [24, 26, 28]
+      }
+    }
+  },
+  {
+    "id": "7",
+    "name": "Tricep Dips",
+    "category": "Upper Body",
+    "description": "Strengthen triceps and chest",
+    "target_reps": 10,
+    "config_json": {
+      "down_angle": 90,
+      "up_angle": 160,
+      "keypoints": {
+        "left": [11, 13, 15],
+        "right": [12, 14, 16]
+      }
+    }
+  },
+  {
+    "id": "8",
+    "name": "Glute Bridges",
+    "category": "Lower Body",
+    "description": "Strengthen glutes and lower back",
+    "target_reps": 15,
+    "config_json": {
+      "down_angle": 45,
+      "up_angle": 130,
+      "keypoints": {
+        "left": [23, 25, 27],
+        "right": [24, 26, 28]
+      }
+    }
+  },
+  {
+    "id": "9",
+    "name": "Lateral Raises",
+    "category": "Upper Body",
+    "description": "Strengthen shoulders",
+    "target_reps": 12,
+    "config_json": {
+      "down_angle": 20,
+      "up_angle": 90,
+      "keypoints": {
+        "left": [11, 13, 15],
+        "right": [12, 14, 16]
+      }
+    }
+  },
+  {
+    "id": "10",
+    "name": "Calf Raises",
+    "category": "Lower Body",
+    "description": "Strengthen calf muscles",
+    "target_reps": 20,
+    "config_json": {
+      "down_angle": 50,
+      "up_angle": 150,
+      "keypoints": {
+        "left": [23, 25, 27],
+        "right": [24, 26, 28]
+      }
+    }
+  }
+]
