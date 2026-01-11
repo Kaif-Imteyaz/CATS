@@ -88,8 +88,6 @@ CATS functions as an assistive tool, not a replacement for clinical expertise:
   </tr>
 </table>
 
-
-
 ## Planned Development
 
 ### Caregiver Support Features
