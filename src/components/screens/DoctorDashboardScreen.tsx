@@ -5,26 +5,29 @@ import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Input } from '../ui/input';
 import { Textarea } from '../ui/textarea';
-import { 
+import {
   ArrowLeft,
   Users,
   TrendingUp,
   Calendar,
-  Bell,
   Send,
   ChevronRight,
   Activity,
   Clock,
   CheckCircle,
   AlertCircle,
-  User,
   Plus,
   Pill,
   Dumbbell,
-  FileText
+  FileText,
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import { useAppStore } from '../../stores/appStore';
-import { 
+import { useAuth } from '../../hooks/useAuth';
+import { usePatients, PatientWithStats } from '../../hooks/usePatients';
+import { useDoctorStats } from '../../hooks/useSessionStats';
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -36,47 +39,63 @@ interface DoctorDashboardScreenProps {
   onLogout: () => void;
 }
 
-// Mock patient data
-const mockPatients = [
-  { id: '1', name: 'John Doe', age: 65, condition: 'Lower Back Pain', lastSession: '2 hours ago', formScore: 92, sessionsThisWeek: 5, streak: 7, status: 'active' },
-  { id: '2', name: 'Sarah Johnson', age: 58, condition: 'Knee Rehabilitation', lastSession: 'Yesterday', formScore: 88, sessionsThisWeek: 3, streak: 4, status: 'active' },
-  { id: '3', name: 'Michael Chen', age: 72, condition: 'Shoulder Recovery', lastSession: '3 days ago', formScore: 75, sessionsThisWeek: 1, streak: 0, status: 'needs-attention' },
-  { id: '4', name: 'Emily Wilson', age: 45, condition: 'Post-Surgery PT', lastSession: 'Today', formScore: 95, sessionsThisWeek: 6, streak: 14, status: 'excellent' },
-];
-
 export function DoctorDashboardScreen({ onLogout }: DoctorDashboardScreenProps) {
   const { addDoctorMessage } = useAppStore();
-  const [selectedPatient, setSelectedPatient] = useState<typeof mockPatients[0] | null>(null);
+  const { user } = useAuth();
+  const { patients, isLoading: patientsLoading, refresh: refreshPatients } = usePatients(user?.id);
+  const { stats: doctorStats, isLoading: statsLoading } = useDoctorStats(user?.id);
+
+  const [selectedPatient, setSelectedPatient] = useState<PatientWithStats | null>(null);
   const [messageType, setMessageType] = useState<'recommendation' | 'prescription' | 'exercise'>('recommendation');
   const [messageTitle, setMessageTitle] = useState('');
   const [messageContent, setMessageContent] = useState('');
 
   const currentTime = new Date();
-  const formattedDate = currentTime.toLocaleDateString('en-US', { 
-    weekday: 'long', 
-    month: 'long', 
-    day: 'numeric' 
+  const formattedDate = currentTime.toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'long',
+    day: 'numeric'
   });
 
   const handleSendMessage = () => {
     if (!messageTitle.trim() || !messageContent.trim()) return;
-    
+
     addDoctorMessage({
       type: messageType,
       title: messageTitle,
       content: messageContent,
     });
-    
+
     setMessageTitle('');
     setMessageContent('');
     setSelectedPatient(null);
   };
 
   const stats = [
-    { label: 'Active Patients', value: '24', icon: Users, color: 'text-primary' },
-    { label: 'Sessions Today', value: '12', icon: Activity, color: 'text-success' },
-    { label: 'Avg Form Score', value: '87%', icon: TrendingUp, color: 'text-warning' },
-    { label: 'Pending Reviews', value: '3', icon: Clock, color: 'text-destructive' },
+    {
+      label: 'Active Patients',
+      value: statsLoading ? '-' : doctorStats.activePatients.toString(),
+      icon: Users,
+      color: 'text-primary'
+    },
+    {
+      label: 'Sessions Today',
+      value: statsLoading ? '-' : doctorStats.sessionsToday.toString(),
+      icon: Activity,
+      color: 'text-success'
+    },
+    {
+      label: 'Avg Form Score',
+      value: statsLoading ? '-' : `${doctorStats.avgFormScore}%`,
+      icon: TrendingUp,
+      color: 'text-warning'
+    },
+    {
+      label: 'Pending Reviews',
+      value: statsLoading ? '-' : doctorStats.pendingReviews.toString(),
+      icon: Clock,
+      color: 'text-destructive'
+    },
   ];
 
   return (
@@ -102,23 +121,25 @@ export function DoctorDashboardScreen({ onLogout }: DoctorDashboardScreenProps) 
           {stats.map((stat) => {
             const Icon = stat.icon;
             return (
-              <Card key={stat.label} variant="gradient">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-full bg-muted flex items-center justify-center ${stat.color}`}>
+              <div key={stat.label} className="rounded-xl border bg-card p-4 flex items-center gap-3">
+                <div className={`w-10 h-10 rounded-full bg-muted flex items-center justify-center ${stat.color}`}>
+                  {statsLoading ? (
+                    <Loader2 size={20} className="animate-spin" />
+                  ) : (
                     <Icon size={20} />
-                  </div>
-                  <div>
-                    <p className="text-xl font-bold">{stat.value}</p>
-                    <p className="text-xs text-muted-foreground">{stat.label}</p>
-                  </div>
-                </CardContent>
-              </Card>
+                  )}
+                </div>
+                <div>
+                  <p className="text-xl font-bold">{stat.value}</p>
+                  <p className="text-xs text-muted-foreground">{stat.label}</p>
+                </div>
+              </div>
             );
           })}
         </div>
 
         {/* Quick Actions */}
-        <Card variant="outline" className="animate-slide-up animation-delay-100">
+        <div className="rounded-xl border bg-card animate-slide-up animation-delay-100">
           <CardContent className="p-4">
             <h3 className="font-semibold mb-3 flex items-center gap-2">
               <Send size={16} />
@@ -127,13 +148,13 @@ export function DoctorDashboardScreen({ onLogout }: DoctorDashboardScreenProps) 
             <div className="space-y-3">
               <Select
                 value={selectedPatient?.id || ''}
-                onValueChange={(value) => setSelectedPatient(mockPatients.find(p => p.id === value) || null)}
+                onValueChange={(value) => setSelectedPatient(patients.find((p) => p.id === value) || null)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a patient" />
                 </SelectTrigger>
                 <SelectContent>
-                  {mockPatients.map((patient) => (
+                  {patients.map((patient) => (
                     <SelectItem key={patient.id} value={patient.id}>
                       {patient.name} - {patient.condition}
                     </SelectItem>
@@ -172,8 +193,8 @@ export function DoctorDashboardScreen({ onLogout }: DoctorDashboardScreenProps) 
                     onChange={(e) => setMessageContent(e.target.value)}
                     rows={3}
                   />
-                  <Button 
-                    className="w-full" 
+                  <Button
+                    className="w-full"
                     onClick={handleSendMessage}
                     disabled={!messageTitle.trim() || !messageContent.trim()}
                   >
@@ -184,99 +205,136 @@ export function DoctorDashboardScreen({ onLogout }: DoctorDashboardScreenProps) 
               )}
             </div>
           </CardContent>
-        </Card>
+        </div>
 
         {/* Patient List */}
         <div className="animate-slide-up animation-delay-200">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-semibold text-foreground">Your Patients</h3>
-            <Button variant="ghost" size="sm" className="text-primary">
-              <Plus size={14} className="mr-1" />
-              Add Patient
-            </Button>
-          </div>
-          <div className="space-y-3">
-            {mockPatients.map((patient) => (
-              <Card 
-                key={patient.id} 
-                variant="interactive"
-                className="cursor-pointer"
-                onClick={() => setSelectedPatient(patient)}
+            <div className="flex gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => refreshPatients()}
+                disabled={patientsLoading}
               >
-                <CardContent className="p-4">
+                <RefreshCw size={14} className={patientsLoading ? 'animate-spin' : ''} />
+              </Button>
+              <Button variant="ghost" size="sm" className="text-primary">
+                <Plus size={14} className="mr-1" />
+                Add Patient
+              </Button>
+            </div>
+          </div>
+
+          {patientsLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="rounded-xl border bg-card p-4 animate-pulse">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
-                      <span className="text-sm font-bold text-primary">
-                        {patient.name.split(' ').map(n => n[0]).join('')}
-                      </span>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-sm">{patient.name}</h4>
-                        <Badge 
-                          variant={
-                            patient.status === 'excellent' ? 'default' : 
-                            patient.status === 'needs-attention' ? 'destructive' : 'secondary'
-                          }
-                          className="text-xs"
-                        >
-                          {patient.status === 'excellent' ? <CheckCircle size={10} className="mr-1" /> : 
-                           patient.status === 'needs-attention' ? <AlertCircle size={10} className="mr-1" /> : null}
-                          {patient.status.replace('-', ' ')}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground">
-                        {patient.condition} • {patient.age} years
-                      </p>
-                      <div className="flex items-center gap-3 mt-1">
-                        <span className="text-xs text-muted-foreground">
-                          Score: <span className="font-semibold text-success">{patient.formScore}%</span>
-                        </span>
-                        <span className="text-xs text-muted-foreground">
-                          {patient.sessionsThisWeek} sessions this week
-                        </span>
-                        {patient.streak > 0 && (
-                          <span className="text-xs">🔥 {patient.streak} day streak</span>
-                        )}
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs text-muted-foreground">{patient.lastSession}</p>
-                      <ChevronRight size={16} className="text-muted-foreground ml-auto mt-1" />
+                    <div className="w-12 h-12 rounded-full bg-muted" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 bg-muted rounded w-1/3" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+              ))}
+            </div>
+          ) : patients.length === 0 ? (
+            <div className="rounded-xl border bg-card p-8 text-center">
+              <Users size={40} className="mx-auto text-muted-foreground mb-3" />
+              <p className="text-sm text-muted-foreground">No patients yet</p>
+              <p className="text-xs text-muted-foreground mt-1">Add patients to start tracking their progress</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {patients.map((patient) => (
+                <div
+                  key={patient.id}
+                  className="rounded-xl border bg-card cursor-pointer hover:bg-accent/50 transition-colors"
+                  onClick={() => setSelectedPatient(patient)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center">
+                        <span className="text-sm font-bold text-primary">
+                          {patient.name.split(' ').map((n: string) => n[0]).join('')}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-sm">{patient.name}</h4>
+                          <Badge
+                            variant={
+                              patient.status === 'excellent' ? 'default' :
+                              patient.status === 'needs-attention' ? 'destructive' : 'secondary'
+                            }
+                            className="text-xs"
+                          >
+                            {patient.status === 'excellent' ? <CheckCircle size={10} className="mr-1" /> :
+                             patient.status === 'needs-attention' ? <AlertCircle size={10} className="mr-1" /> : null}
+                            {patient.status.replace('-', ' ')}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          {patient.condition} {patient.age ? `• ${patient.age} years` : ''}
+                        </p>
+                        <div className="flex items-center gap-3 mt-1">
+                          <span className="text-xs text-muted-foreground">
+                            Score: <span className="font-semibold text-success">{patient.formScore}%</span>
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {patient.sessionsThisWeek} sessions this week
+                          </span>
+                          {patient.streak > 0 && (
+                            <span className="text-xs">🔥 {patient.streak} day streak</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-muted-foreground">{patient.lastSession}</p>
+                        <ChevronRight size={16} className="text-muted-foreground ml-auto mt-1" />
+                      </div>
+                    </div>
+                  </CardContent>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Upcoming Appointments */}
-        <Card variant="outline" className="animate-slide-up animation-delay-300">
+        <div className="rounded-xl border bg-card animate-slide-up animation-delay-300">
           <CardContent className="p-4">
             <h3 className="font-semibold mb-3 flex items-center gap-2">
               <Calendar size={16} />
               Today's Schedule
             </h3>
-            <div className="space-y-3">
-              {[
-                { time: '10:00 AM', patient: 'John Doe', type: 'Check-in' },
-                { time: '11:30 AM', patient: 'Sarah Johnson', type: 'Progress Review' },
-                { time: '2:00 PM', patient: 'Michael Chen', type: 'Assessment' },
-                { time: '4:00 PM', patient: 'Emily Wilson', type: 'Follow-up' },
-              ].map((appt, index) => (
-                <div key={index} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
-                  <div className="w-16 text-sm font-medium text-primary">{appt.time}</div>
-                  <div className="flex-1">
-                    <p className="text-sm font-medium">{appt.patient}</p>
-                    <p className="text-xs text-muted-foreground">{appt.type}</p>
-                  </div>
-                  <Button variant="outline" size="sm">View</Button>
-                </div>
-              ))}
-            </div>
+            {patients.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No appointments scheduled
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {patients.slice(0, 4).map((patient, index) => {
+                  const times = ['10:00 AM', '11:30 AM', '2:00 PM', '4:00 PM'];
+                  const types = ['Check-in', 'Progress Review', 'Assessment', 'Follow-up'];
+                  return (
+                    <div key={patient.id} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
+                      <div className="w-16 text-sm font-medium text-primary">{times[index]}</div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{patient.name}</p>
+                        <p className="text-xs text-muted-foreground">{types[index]}</p>
+                      </div>
+                      <Button variant="outline" size="sm">View</Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </CardContent>
-        </Card>
+        </div>
       </main>
     </div>
   );

@@ -169,9 +169,32 @@ export const useAppStore = create<AppState>()(
       setCurrentScreen: (screen) => set({ currentScreen: screen }),
       setOnboardingStep: (step) => set({ onboardingStep: step }),
       updateUserProfile: (updates) =>
-        set((state) => ({
-          userProfile: { ...state.userProfile, ...updates },
-        })),
+        set((state) => {
+          let newUpdates = { ...updates };
+
+          // Auto-sync language and voiceLanguage when culturalBackground changes
+          if (updates.culturalBackground && updates.culturalBackground !== state.userProfile.culturalBackground) {
+            const background = CULTURAL_BACKGROUNDS.find(bg => bg.id === updates.culturalBackground);
+            if (background && background.languages.length > 0) {
+              // Set language and voiceLanguage to the primary language of the cultural background
+              const primaryLanguage = background.languages[0];
+              newUpdates = {
+                ...newUpdates,
+                language: primaryLanguage,
+                voiceLanguage: primaryLanguage,
+              };
+            }
+          }
+
+          // Keep voiceLanguage in sync with language if language is changed
+          if (updates.language && !updates.voiceLanguage) {
+            newUpdates.voiceLanguage = updates.language;
+          }
+
+          return {
+            userProfile: { ...state.userProfile, ...newUpdates },
+          };
+        }),
       completeOnboarding: () => set({ isOnboarded: true, currentScreen: 'dashboard' }),
       resetApp: () => set({ 
         currentScreen: 'splash', 

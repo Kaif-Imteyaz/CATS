@@ -1,6 +1,5 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
 import { Switch } from '../ui/switch';
 import { Slider } from '../ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
@@ -82,10 +81,10 @@ export function SessionScreen({ exerciseId, onExit, onComplete }: SessionScreenP
     return 'general';
   };
 
-  // Get relevant angles for the current exercise
+  // Get relevant angles for the current exercise - returns averaged values
   const getRelevantAngles = (angles: PoseAnalysis['angles']) => {
     const exerciseType = getExerciseType();
-    
+
     switch (exerciseType) {
       case 'squat':
         return [
@@ -121,6 +120,60 @@ export function SessionScreen({ exerciseId, onExit, onComplete }: SessionScreenP
         return [
           { label: 'Knee Angle', value: ((angles.leftKnee || 0) + (angles.rightKnee || 0)) / 2, color: 'primary' },
           { label: 'Elbow Angle', value: ((angles.leftElbow || 0) + (angles.rightElbow || 0)) / 2, color: 'accent' }
+        ];
+    }
+  };
+
+  // Get left side angles for display
+  const getLeftSideAngles = (angles: PoseAnalysis['angles']) => {
+    const exerciseType = getExerciseType();
+
+    switch (exerciseType) {
+      case 'squat':
+        return [
+          { label: 'L Knee', value: angles.leftKnee || 0 },
+          { label: 'L Hip', value: angles.leftHip || 0 }
+        ];
+      case 'overhead-press':
+        return [
+          { label: 'L Elbow', value: angles.leftElbow || 0 },
+          { label: 'L Shoulder', value: angles.leftShoulder || 0 }
+        ];
+      case 'bridge':
+        return [
+          { label: 'L Hip', value: angles.leftHip || 0 }
+        ];
+      default:
+        return [
+          { label: 'L Elbow', value: angles.leftElbow || 0 },
+          { label: 'L Knee', value: angles.leftKnee || 0 }
+        ];
+    }
+  };
+
+  // Get right side angles for display
+  const getRightSideAngles = (angles: PoseAnalysis['angles']) => {
+    const exerciseType = getExerciseType();
+
+    switch (exerciseType) {
+      case 'squat':
+        return [
+          { label: 'R Knee', value: angles.rightKnee || 0 },
+          { label: 'R Hip', value: angles.rightHip || 0 }
+        ];
+      case 'overhead-press':
+        return [
+          { label: 'R Elbow', value: angles.rightElbow || 0 },
+          { label: 'R Shoulder', value: angles.rightShoulder || 0 }
+        ];
+      case 'bridge':
+        return [
+          { label: 'R Hip', value: angles.rightHip || 0 }
+        ];
+      default:
+        return [
+          { label: 'R Elbow', value: angles.rightElbow || 0 },
+          { label: 'R Knee', value: angles.rightKnee || 0 }
         ];
     }
   };
@@ -330,18 +383,18 @@ export function SessionScreen({ exerciseId, onExit, onComplete }: SessionScreenP
 
         <main className="flex-1 p-4 pb-32 space-y-6 overflow-auto max-w-md mx-auto">
           {/* Preview */}
-          <Card variant="gradient" className="overflow-hidden">
+          <div className="rounded-xl border bg-gradient-to-br from-primary/10 to-accent/10 overflow-hidden">
             <div className="aspect-video bg-primary/10 flex items-center justify-center">
               <span className="text-8xl">
-                {getExerciseType() === 'squat' ? '🦵' : 
-                 getExerciseType() === 'overhead-press' ? '💪' : 
-                 getExerciseType() === 'bridge' ? '🏋️' : 
-                 getExerciseType() === 'bird-dog' ? '🐕' : 
-                 getExerciseType() === 'stretch' ? '🧘' : 
+                {getExerciseType() === 'squat' ? '🦵' :
+                 getExerciseType() === 'overhead-press' ? '💪' :
+                 getExerciseType() === 'bridge' ? '🏋️' :
+                 getExerciseType() === 'bird-dog' ? '🐕' :
+                 getExerciseType() === 'stretch' ? '🧘' :
                  getExerciseType() === 'wall-sit' ? '🧍' : '🏃'}
               </span>
             </div>
-            <CardContent className="p-4">
+            <div className="p-4">
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <span>{exercise.reps} reps × {exercise.sets} sets</span>
                 <span>•</span>
@@ -350,15 +403,15 @@ export function SessionScreen({ exerciseId, onExit, onComplete }: SessionScreenP
               <div className="mt-2 text-sm">
                 <p className="font-medium">AI will track:</p>
                 <p className="text-muted-foreground">
-                  {getExerciseType() === 'overhead-press' 
-                    ? 'Shoulder & elbow angles, posture alignment' 
+                  {getExerciseType() === 'overhead-press'
+                    ? 'Shoulder & elbow angles, posture alignment'
                     : getExerciseType() === 'squat'
                     ? 'Knee & hip angles, depth, and form'
                     : 'Form and posture during exercise'}
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Checklist */}
           <div className="space-y-3">
@@ -518,12 +571,13 @@ export function SessionScreen({ exerciseId, onExit, onComplete }: SessionScreenP
   if (phase === 'active' || phase === 'paused') {
     return (
       <div className="min-h-screen bg-foreground relative overflow-hidden">
-        {/* Hidden video element for camera input */}
+        {/* Video element for camera input - must be visible for some browsers */}
         <video
           ref={videoRef}
-          className="hidden"
+          className="absolute w-1 h-1 opacity-0 pointer-events-none"
           playsInline
           muted
+          autoPlay
         />
 
         {/* Canvas for rendering pose detection */}
@@ -571,43 +625,58 @@ export function SessionScreen({ exerciseId, onExit, onComplete }: SessionScreenP
           </div>
         </div>
 
-        {/* Left side - Rep counter & form score */}
-        <div className="absolute left-4 top-1/2 -translate-y-1/2 space-y-4 z-20">
-          <div className="bg-card/90 backdrop-blur-sm rounded-xl p-3 text-center shadow-lg">
-            <p className="text-3xl font-bold text-foreground">{currentRep}/{totalReps}</p>
-            <p className="text-xs text-muted-foreground">Reps</p>
+        {/* Left side - Rep counter, form score & LEFT angles */}
+        <div className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 space-y-2 sm:space-y-3 z-20">
+          <div className="bg-card/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 text-center shadow-lg">
+            <p className="text-xl sm:text-3xl font-bold text-foreground">{currentRep}/{totalReps}</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Reps</p>
           </div>
-          <div className="bg-card/90 backdrop-blur-sm rounded-xl p-3 text-center shadow-lg">
+          <div className="bg-card/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 text-center shadow-lg">
             <p className={cn(
-              "text-2xl font-bold",
+              "text-lg sm:text-2xl font-bold",
               formScore >= 80 ? "text-success" : formScore >= 60 ? "text-warning" : "text-destructive"
             )}>
               {formScore}%
             </p>
-            <p className="text-xs text-muted-foreground">Form</p>
+            <p className="text-[10px] sm:text-xs text-muted-foreground">Form</p>
           </div>
-          
-          {/* Dynamic angle display based on exercise */}
-          {relevantAngles.map((angle, index) => (
-            <div 
-              key={index} 
-              className="bg-card/90 backdrop-blur-sm rounded-xl p-3 text-center shadow-lg animate-slide-up"
+
+          {/* Left side angles */}
+          {getLeftSideAngles(currentAngles).map((angle, index) => (
+            <div
+              key={`left-${index}`}
+              className="bg-card/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 text-center shadow-lg animate-slide-up"
               style={{ animationDelay: `${index * 100}ms` }}
             >
-              <p className="text-lg font-bold text-primary">
+              <p className="text-sm sm:text-lg font-bold text-primary">
                 {Math.round(angle.value)}°
               </p>
-              <p className="text-xs text-muted-foreground">{angle.label}</p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate max-w-[60px] sm:max-w-none">{angle.label}</p>
             </div>
           ))}
         </div>
 
-        {/* Right side - Feedback */}
-        {currentFeedback && (
-          <div className="absolute right-4 top-1/3 z-20">
+        {/* Right side - RIGHT angles & Feedback */}
+        <div className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 space-y-2 sm:space-y-3 z-20">
+          {/* Right side angles */}
+          {getRightSideAngles(currentAngles).map((angle, index) => (
+            <div
+              key={`right-${index}`}
+              className="bg-card/90 backdrop-blur-sm rounded-lg sm:rounded-xl p-2 sm:p-3 text-center shadow-lg animate-slide-up"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <p className="text-sm sm:text-lg font-bold text-accent">
+                {Math.round(angle.value)}°
+              </p>
+              <p className="text-[10px] sm:text-xs text-muted-foreground truncate max-w-[60px] sm:max-w-none">{angle.label}</p>
+            </div>
+          ))}
+
+          {/* Feedback below angles */}
+          {currentFeedback && (
             <div
               className={cn(
-                'px-4 py-2 rounded-lg backdrop-blur-sm animate-slide-up shadow-lg max-w-[200px]',
+                'px-3 py-2 rounded-lg backdrop-blur-sm animate-slide-up shadow-lg max-w-[140px] sm:max-w-[180px]',
                 currentFeedback.type === 'good'
                   ? 'bg-success/90 text-success-foreground'
                   : currentFeedback.type === 'warning'
@@ -615,17 +684,17 @@ export function SessionScreen({ exerciseId, onExit, onComplete }: SessionScreenP
                   : 'bg-destructive/90 text-destructive-foreground'
               )}
             >
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 sm:gap-2">
                 {currentFeedback.type === 'good' ? (
-                  <Check size={16} />
+                  <Check size={14} className="flex-shrink-0" />
                 ) : (
-                  <AlertTriangle size={16} />
+                  <AlertTriangle size={14} className="flex-shrink-0" />
                 )}
-                <span className="text-sm font-medium">{currentFeedback.message}</span>
+                <span className="text-[10px] sm:text-xs font-medium leading-tight">{currentFeedback.message}</span>
               </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {/* Bottom bar */}
         <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-foreground/80 to-transparent z-20">
@@ -680,8 +749,8 @@ export function SessionScreen({ exerciseId, onExit, onComplete }: SessionScreenP
         {/* Pause modal */}
         {phase === 'paused' && (
           <div className="absolute inset-0 bg-foreground/90 backdrop-blur-sm flex items-center justify-center p-6 z-30">
-            <Card variant="elevated" className="w-full max-w-sm">
-              <CardContent className="p-6 space-y-4">
+            <div className="w-full max-w-sm rounded-xl border bg-card shadow-xl">
+              <div className="p-6 space-y-4">
                 <h2 className="text-xl font-bold text-center">Session Paused</h2>
                 <div className="text-center text-muted-foreground">
                   <p>Completed: {currentRep}/{totalReps} reps</p>
@@ -701,8 +770,8 @@ export function SessionScreen({ exerciseId, onExit, onComplete }: SessionScreenP
                     Exit to Dashboard
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </div>
         )}
       </div>
@@ -743,14 +812,14 @@ export function SessionScreen({ exerciseId, onExit, onComplete }: SessionScreenP
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-4">
-          <Card variant="gradient">
-            <CardContent className="p-4 text-center">
+          <div className="rounded-xl border bg-gradient-to-br from-primary/10 to-accent/10">
+            <div className="p-4 text-center">
               <p className="text-2xl font-bold">{formatTime(timer)}</p>
               <p className="text-xs text-muted-foreground">Total Time</p>
-            </CardContent>
-          </Card>
-          <Card variant="gradient">
-            <CardContent className="p-4 text-center">
+            </div>
+          </div>
+          <div className="rounded-xl border bg-gradient-to-br from-primary/10 to-accent/10">
+            <div className="p-4 text-center">
               <p className={cn(
                 "text-2xl font-bold",
                 avgFormScore >= 80 ? "text-success" : avgFormScore >= 60 ? "text-warning" : "text-foreground"
@@ -758,29 +827,29 @@ export function SessionScreen({ exerciseId, onExit, onComplete }: SessionScreenP
                 {avgFormScore}%
               </p>
               <p className="text-xs text-muted-foreground">Avg Form</p>
-            </CardContent>
-          </Card>
-          <Card variant="gradient">
-            <CardContent className="p-4 text-center">
+            </div>
+          </div>
+          <div className="rounded-xl border bg-gradient-to-br from-primary/10 to-accent/10">
+            <div className="p-4 text-center">
               <p className="text-2xl font-bold">{totalReps * totalSets}</p>
               <p className="text-xs text-muted-foreground">Total Reps</p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Exercise-specific completion message */}
         {avgFormScore >= 85 && (
-          <Card variant="outline">
-            <CardContent className="p-4">
+          <div className="rounded-xl border bg-card">
+            <div className="p-4">
               <p className="text-sm text-success font-medium">
-                {getExerciseType() === 'overhead-press' 
+                {getExerciseType() === 'overhead-press'
                   ? '🎉 Excellent shoulder press form! Perfect elbow and shoulder alignment.'
                   : getExerciseType() === 'squat'
                   ? '🎉 Perfect squat depth and knee alignment!'
                   : '🎉 Excellent form throughout the session!'}
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Rate feeling */}

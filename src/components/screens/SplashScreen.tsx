@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Logo } from '../Logo';
+import { Activity } from 'lucide-react';
 
 interface SplashScreenProps {
   onComplete: () => void;
@@ -18,49 +19,53 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   }, [onComplete]);
 
   return (
-    <div className="min-h-screen gradient-hero flex flex-col items-center justify-center relative overflow-hidden max-w-md mx-auto">
-      {/* Animated background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-success/20 rounded-full blur-3xl animate-float" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-primary-foreground/10 rounded-full blur-3xl animate-float animation-delay-500" />
+    <div className="min-h-screen bg-gradient-to-b from-primary via-primary/95 to-accent/80 flex flex-col items-center justify-center relative overflow-hidden max-w-md mx-auto">
+      {/* Subtle background pattern */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute inset-0" style={{
+          backgroundImage: `radial-gradient(circle at 2px 2px, white 1px, transparent 0)`,
+          backgroundSize: '32px 32px'
+        }} />
       </div>
 
       {/* Main content */}
-      <div className="relative z-10 flex flex-col items-center gap-8 max-w-md mx-auto">
+      <div className="relative z-10 flex flex-col items-center gap-6 max-w-md mx-auto px-6">
+        {/* Logo container */}
         <div className="animate-scale-in">
-          <div className="bg-card/20 backdrop-blur-sm rounded-3xl p-8 ">
+          <div className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 shadow-2xl">
             <Logo size="xl" />
           </div>
         </div>
 
-        <div className="text-center animate-slide-up animation-delay-300">
-          <h1 className="text-4xl font-bold text-primary-foreground mb-2">
-            CATS<span className="text-success"></span>
-          </h1>
-          <p className="text-primary-foreground/80 text-lg font-medium">
-            Culturally Adaptive Theraupetic System
+        {/* Title and tagline */}
+        <div className="text-center animate-slide-up animation-delay-200">
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Activity className="w-8 h-8 text-white" strokeWidth={2.5} />
+            <h1 className="text-4xl font-bold text-white tracking-tight">
+              CATS
+            </h1>
+          </div>
+          <p className="text-white/90 text-base font-medium mb-1">
+            Culturally Adaptive Therapeutic System
           </p>
-          <p className="text-primary-foreground/80 text-lg font-medium">
-            Your AI Physiotherapist
+          <p className="text-white/70 text-sm">
+            Your AI-Powered Physiotherapist
           </p>
         </div>
 
         {/* Loading indicator */}
-        <div className="flex gap-2 animate-slide-up animation-delay-500">
-          {[0, 1, 2].map((i) => (
-            <div
-              key={i}
-              className="w-3 h-3 bg-primary-foreground/80 rounded-full animate-pulse-soft"
-              style={{ animationDelay: `${i * 200}ms` }}
-            />
-          ))}
+        <div className="flex items-center gap-3 animate-slide-up animation-delay-400 mt-4">
+          <div className="w-8 h-1 bg-white/30 rounded-full overflow-hidden">
+            <div className="h-full bg-white rounded-full animate-pulse" style={{ width: '60%' }} />
+          </div>
+          <span className="text-white/60 text-xs font-medium">Loading</span>
         </div>
       </div>
 
-      {/* Bottom text */}
-      <div className="absolute bottom-8 text-center animate-fade-in animation-delay-500">
-        <p className="text-primary-foreground/60 text-sm">
-          Assistive Technology for Rehabilitation and Therapy
+      {/* Bottom tagline */}
+      <div className="absolute bottom-8 left-0 right-0 text-center px-6 animate-slide-up animation-delay-500">
+        <p className="text-white/50 text-xs">
+          Rehabilitation Meets Technology
         </p>
       </div>
     </div>

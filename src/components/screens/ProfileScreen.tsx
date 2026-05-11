@@ -1,35 +1,37 @@
 import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
 import { Switch } from '../ui/switch';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '../ui/select';
-import { 
-  User, 
-  Bell, 
-  Shield, 
-  Volume2, 
-  Camera, 
+import {
+  Bell,
+  Shield,
+  Volume2,
+  Camera,
   HardDrive,
   HelpCircle,
   Info,
   ChevronRight,
   LogOut,
   Trash2,
-  Calendar,
   MessageSquare,
   FileText,
   Globe,
   Languages,
   Accessibility,
-  ArrowLeft
+  ArrowLeft,
+  Loader2,
+  RefreshCw
 } from 'lucide-react';
 import { useAppStore, CULTURAL_BACKGROUNDS, LANGUAGES } from '../../stores/appStore';
 import { useButtonVoice } from '../../hooks/useButtonVoice';
+import { useAuth } from '../../hooks/useAuth';
+import { useProfileStats } from '../../hooks/useProfileStats';
+import { format } from 'date-fns';
 
 interface ProfileScreenProps {
   onLogout: () => void;
@@ -46,9 +48,24 @@ const settingsItems = [
   { icon: Info, label: 'About', hasToggle: false },
 ];
 
+// Helper to format time duration
+const formatDuration = (minutes: number): string => {
+  if (minutes < 60) return `${minutes} min`;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  return mins > 0 ? `${hours}h ${mins}m` : `${hours} hrs`;
+};
+
 export function ProfileScreen({ onLogout, onBack }: ProfileScreenProps) {
   const { userProfile, updateUserProfile } = useAppStore();
   const { speak } = useButtonVoice();
+  const { user, profile: authProfile } = useAuth();
+  const { stats, isLoading: statsLoading, refresh: refreshStats } = useProfileStats(user?.id);
+
+  // Format member since date
+  const memberSince = stats.joinedDate
+    ? format(new Date(stats.joinedDate), 'MMM yyyy')
+    : 'Recently';
 
   return (
     <div className="min-h-screen bg-background pb-24 max-w-md mx-auto">
@@ -67,30 +84,30 @@ export function ProfileScreen({ onLogout, onBack }: ProfileScreenProps) {
 
       <main className="px-4 space-y-6">
         {/* Profile card */}
-        <Card variant="gradient" className="animate-slide-up">
-          <CardContent className="p-6">
+        <div className="rounded-xl border bg-gradient-to-br from-primary/10 to-accent/10 animate-slide-up">
+          <div className="p-6">
             <div className="flex items-center gap-4">
               <div className="w-16 h-16 rounded-full bg-primary/20 flex items-center justify-center">
                 <span className="text-2xl font-bold text-primary">
-                  {userProfile.name ? userProfile.name[0].toUpperCase() : 'U'}
+                  {(authProfile?.full_name || userProfile.name)?.[0]?.toUpperCase() || 'U'}
                 </span>
               </div>
               <div className="flex-1">
-                <h2 className="text-xl font-bold">{userProfile.name || 'User'}</h2>
-                <p className="text-sm text-muted-foreground">Member since Jan 2024</p>
+                <h2 className="text-xl font-bold">{authProfile?.full_name || userProfile.name || 'User'}</h2>
+                <p className="text-sm text-muted-foreground">Member since {memberSince}</p>
               </div>
               <Button variant="outline" size="sm">
                 Edit
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Cultural & Language Settings */}
         <div className="animate-slide-up animation-delay-100">
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">CULTURAL & LANGUAGE</h3>
-          <Card variant="default">
-            <CardContent className="p-4 space-y-4">
+          <div className="rounded-xl border bg-card">
+            <div className="p-4 space-y-4">
               {/* Cultural Background */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
@@ -151,15 +168,15 @@ export function ProfileScreen({ onLogout, onBack }: ProfileScreenProps) {
                   onCheckedChange={(checked) => updateUserProfile({ voiceAccessibility: checked })}
                 />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Personal Info */}
         <div className="animate-slide-up animation-delay-200">
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">PERSONAL INFO</h3>
-          <Card variant="default">
-            <CardContent className="p-0 divide-y divide-border">
+          <div className="rounded-xl border bg-card">
+            <div className="p-0 divide-y divide-border">
               {[
                 { label: 'Age', value: `${userProfile.age} years` },
                 { label: 'Gender', value: userProfile.gender || 'Not specified' },
@@ -170,15 +187,15 @@ export function ProfileScreen({ onLogout, onBack }: ProfileScreenProps) {
                   <span className="text-sm text-muted-foreground">{item.value}</span>
                 </div>
               ))}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Conditions & Goals */}
         <div className="animate-slide-up animation-delay-300">
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">CONDITIONS & GOALS</h3>
-          <Card variant="default">
-            <CardContent className="p-4 space-y-3">
+          <div className="rounded-xl border bg-card">
+            <div className="p-4 space-y-3">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">Conditions</p>
                 <div className="flex flex-wrap gap-2">
@@ -215,15 +232,15 @@ export function ProfileScreen({ onLogout, onBack }: ProfileScreenProps) {
                   ))}
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Clinician Connection */}
         <div className="animate-slide-up animation-delay-400">
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">CLINICIAN CONNECTION</h3>
-          <Card variant="default">
-            <CardContent className="p-4">
+          <div className="rounded-xl border bg-card">
+            <div className="p-4">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 rounded-full bg-success/20 flex items-center justify-center">
                   <span className="text-sm font-bold text-success">DS</span>
@@ -244,26 +261,41 @@ export function ProfileScreen({ onLogout, onBack }: ProfileScreenProps) {
                   Share Report
                 </Button>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Stats Snapshot */}
         <div className="animate-slide-up animation-delay-500">
-          <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">ALL-TIME STATS</h3>
+          <div className="flex items-center justify-between mb-3 px-1">
+            <h3 className="text-sm font-semibold text-muted-foreground">ALL-TIME STATS</h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => refreshStats()}
+              disabled={statsLoading}
+              className="h-7 px-2"
+            >
+              <RefreshCw size={14} className={statsLoading ? 'animate-spin' : ''} />
+            </Button>
+          </div>
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: 'Total Sessions', value: '24' },
-              { label: 'Total Time', value: '8.5 hrs' },
-              { label: 'Avg Form Score', value: '88%' },
-              { label: 'Best Streak', value: '14 days' },
+              { label: 'Total Sessions', value: statsLoading ? '-' : stats.totalSessions.toString() },
+              { label: 'Total Time', value: statsLoading ? '-' : formatDuration(stats.totalTimeMinutes) },
+              { label: 'Avg Form Score', value: statsLoading ? '-' : `${stats.avgFormScore}%` },
+              { label: 'Best Streak', value: statsLoading ? '-' : `${stats.bestStreak} days` },
             ].map((stat) => (
-              <Card key={stat.label} variant="gradient">
-                <CardContent className="p-4 text-center">
-                  <p className="text-2xl font-bold">{stat.value}</p>
+              <div key={stat.label} className="rounded-xl border bg-gradient-to-br from-primary/10 to-accent/10">
+                <div className="p-4 text-center">
+                  {statsLoading ? (
+                    <Loader2 size={24} className="mx-auto animate-spin text-muted-foreground" />
+                  ) : (
+                    <p className="text-2xl font-bold">{stat.value}</p>
+                  )}
                   <p className="text-xs text-muted-foreground">{stat.label}</p>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
         </div>
@@ -271,8 +303,8 @@ export function ProfileScreen({ onLogout, onBack }: ProfileScreenProps) {
         {/* Settings */}
         <div className="animate-slide-up animation-delay-500 max-w-md mx-auto">
           <h3 className="text-sm font-semibold text-muted-foreground mb-3 px-1">SETTINGS</h3>
-          <Card variant="default">
-            <CardContent className="p-0 divide-y divide-border">
+          <div className="rounded-xl border bg-card">
+            <div className="p-0 divide-y divide-border">
               {settingsItems.map((item) => {
                 const Icon = item.icon;
                 return (
@@ -286,8 +318,8 @@ export function ProfileScreen({ onLogout, onBack }: ProfileScreenProps) {
                   </button>
                 );
               })}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
 
         {/* Logout & Delete */}

@@ -312,6 +312,42 @@ export function usePoseDetection({
 
         console.log(`Initializing MediaPipe Pose for ${exerciseType} analysis...`);
 
+        // First, explicitly request camera permission
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+              facingMode: 'user'
+            }
+          });
+          // Attach stream to video element temporarily
+          if (video) {
+            video.srcObject = stream;
+            await video.play();
+          }
+          // Stop the test stream - MediaPipe Camera will create its own
+          stream.getTracks().forEach(track => track.stop());
+          if (video) {
+            video.srcObject = null;
+          }
+          console.log('Camera permission granted');
+        } catch (permErr) {
+          console.error('Camera permission error:', permErr);
+          if (mounted) {
+            const errMessage = permErr instanceof Error ? permErr.message : 'Unknown error';
+            if (errMessage.includes('Permission denied') || errMessage.includes('NotAllowedError')) {
+              setError('Camera access denied. Please allow camera permissions in your browser settings and refresh the page.');
+            } else if (errMessage.includes('NotFoundError') || errMessage.includes('DevicesNotFoundError')) {
+              setError('No camera found. Please connect a camera and refresh the page.');
+            } else {
+              setError(`Camera error: ${errMessage}. Please check your camera and try again.`);
+            }
+            setIsLoading(false);
+          }
+          return;
+        }
+
         const pose = new Pose({
           locateFile: (file) => {
             return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`;

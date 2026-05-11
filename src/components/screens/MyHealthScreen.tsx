@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react';
 import { Button } from '../ui/button';
-import { Card, CardContent } from '../ui/card';
 import { Badge } from '../ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Input } from '../ui/input';
@@ -184,21 +183,21 @@ export function MyHealthScreen({ onBack }: MyHealthScreenProps) {
             </Tabs>
 
             {/* Accessibility Note */}
-            <Card variant="outline" className="bg-muted/50">
-              <CardContent className="p-3 flex items-center gap-3">
+            <div className="rounded-xl border bg-muted/50">
+              <div className="p-3 flex items-center gap-3">
                 <Volume2 className="text-primary flex-shrink-0" size={20} />
                 <p className="text-xs text-muted-foreground">
                   Tap the play button on any message to hear it read aloud.
                   Designed for easy access by seniors.
                 </p>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           </TabsContent>
 
           {/* Prescriptions/Images Tab */}
           <TabsContent value="prescriptions" className="space-y-4 mt-0">
-            <Card variant="outline">
-              <CardContent className="p-4">
+            <div className="rounded-xl border bg-card">
+              <div className="p-4">
                 <div className="flex flex-col items-center gap-4">
                   <div className="w-full p-6 border-2 border-dashed border-muted-foreground/30 rounded-lg flex flex-col items-center gap-3">
                     <Camera className="text-muted-foreground" size={32} />
@@ -237,8 +236,8 @@ export function MyHealthScreen({ onBack }: MyHealthScreenProps) {
                     </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Uploaded Images */}
             <div className="space-y-3">
@@ -246,27 +245,27 @@ export function MyHealthScreen({ onBack }: MyHealthScreenProps) {
               {userProfile.prescriptionImages && userProfile.prescriptionImages.length > 0 ? (
                 <div className="grid grid-cols-2 gap-3">
                   {userProfile.prescriptionImages.map((img, index) => (
-                    <Card key={index} variant="outline" className="overflow-hidden">
-                      <img 
-                        src={img} 
-                        alt={`Prescription ${index + 1}`} 
+                    <div key={index} className="rounded-xl border bg-card overflow-hidden">
+                      <img
+                        src={img}
+                        alt={`Prescription ${index + 1}`}
                         className="w-full h-32 object-cover"
                       />
-                      <CardContent className="p-2">
+                      <div className="p-2">
                         <p className="text-xs text-muted-foreground text-center">
                           Prescription {index + 1}
                         </p>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   ))}
                 </div>
               ) : (
-                <Card variant="ghost" className="border">
-                  <CardContent className="p-6 flex flex-col items-center gap-2 text-center">
+                <div className="rounded-xl border bg-card/50">
+                  <div className="p-6 flex flex-col items-center gap-2 text-center">
                     <Image className="text-muted-foreground" size={24} />
                     <p className="text-sm text-muted-foreground">No prescriptions uploaded yet</p>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
             </div>
           </TabsContent>
@@ -274,8 +273,8 @@ export function MyHealthScreen({ onBack }: MyHealthScreenProps) {
           {/* Reminders Tab */}
           <TabsContent value="reminders" className="space-y-4 mt-0">
             {/* Add Reminder Form */}
-            <Card variant="gradient">
-              <CardContent className="p-4 space-y-3">
+            <div className="rounded-xl border bg-gradient-to-br from-primary/10 to-accent/10">
+              <div className="p-4 space-y-3">
                 <h3 className="font-semibold text-sm flex items-center gap-2">
                   <Plus size={16} />
                   Add New Reminder
@@ -314,8 +313,8 @@ export function MyHealthScreen({ onBack }: MyHealthScreenProps) {
                     Add
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
             {/* Existing Reminders */}
             <div className="space-y-3">
@@ -324,8 +323,14 @@ export function MyHealthScreen({ onBack }: MyHealthScreenProps) {
                 healthReminders.map((reminder) => {
                   const Icon = reminderIcons[reminder.type];
                   return (
-                    <Card key={reminder.id} variant={reminder.completed ? 'ghost' : 'default'} className="border">
-                      <CardContent className="p-4 flex items-center gap-3">
+                    <div
+                      key={reminder.id}
+                      className={cn(
+                        'rounded-xl border',
+                        reminder.completed ? 'bg-card/50' : 'bg-card'
+                      )}
+                    >
+                      <div className="p-4 flex items-center gap-3">
                         <Button
                           variant={reminder.completed ? 'default' : 'outline'}
                           size="icon"
@@ -352,18 +357,18 @@ export function MyHealthScreen({ onBack }: MyHealthScreenProps) {
                         >
                           <Trash2 size={16} />
                         </Button>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   );
                 })
               ) : (
-                <Card variant="ghost" className="border">
-                  <CardContent className="p-6 flex flex-col items-center gap-2 text-center">
+                <div className="rounded-xl border bg-card/50">
+                  <div className="p-6 flex flex-col items-center gap-2 text-center">
                     <Bell className="text-muted-foreground" size={24} />
                     <p className="text-sm text-muted-foreground">No reminders set</p>
                     <p className="text-xs text-muted-foreground">Add reminders for medicine, exercise, or water</p>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               )}
             </div>
           </TabsContent>
@@ -384,8 +389,13 @@ function MessageCard({ message, isPlaying, onPlay }: MessageCardProps) {
   const colorClass = messageColors[message.type];
 
   return (
-    <Card variant={isPlaying ? 'elevated' : 'default'} className="transition-all">
-      <CardContent className="p-4">
+    <div
+      className={cn(
+        'rounded-xl border bg-card transition-all',
+        isPlaying && 'shadow-lg ring-2 ring-primary/20'
+      )}
+    >
+      <div className="p-4">
         <div className="flex items-start gap-3">
           <div className={cn('w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0', colorClass)}>
             <Icon size={18} />
@@ -403,8 +413,8 @@ function MessageCard({ message, isPlaying, onPlay }: MessageCardProps) {
               </span>
             </div>
           </div>
-          <Button 
-            variant={isPlaying ? 'default' : 'outline'} 
+          <Button
+            variant={isPlaying ? 'default' : 'outline'}
             size="icon"
             className={cn('flex-shrink-0', isPlaying && 'animate-pulse')}
             onClick={onPlay}
@@ -412,7 +422,7 @@ function MessageCard({ message, isPlaying, onPlay }: MessageCardProps) {
             {isPlaying ? <Pause size={16} /> : <Play size={16} />}
           </Button>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 }
