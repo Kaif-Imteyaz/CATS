@@ -35,7 +35,7 @@ export default function Reports() {
         setError(`Could not load report. ${err.message ? `(${err.message})` : ""}`); 
         setLoading(false); 
       });
-  }[user.id, token]);
+  },[user.id, token]);
 
    useEffect(() => {
      if (!user.id || !token) return;
