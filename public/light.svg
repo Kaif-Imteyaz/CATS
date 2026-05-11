@@ -1,0 +1,20 @@
+<!-- SVG 3 : Light Open Version -->
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="outer" x1="0" y1="0" x2="512" y2="512">
+      <stop offset="0%" stop-color="#0E5668"/>
+      <stop offset="100%" stop-color="#083F4D"/>
+    </linearGradient>
+
+    <linearGradient id="inner" x1="120" y1="120" x2="390" y2="390">
+      <stop offset="0%" stop-color="#C5EEF2"/>
+      <stop offset="100%" stop-color="#8BC3CA"/>
+    </linearGradient>
+  </defs>
+
+  <path d="M120 390C110 255 205 85 420 85C320 125 245 215 230 305C215 390 270 455 365 475C215 490 140 440 120 390Z" fill="url(#outer)"/>
+
+  <path d="M180 300C195 190 295 115 420 185L385 220C310 165 245 225 230 295C215 360 260 405 345 405L315 445C220 438 165 375 180 300Z" fill="url(#inner)"/>
+
+  <path d="M235 330C245 265 300 225 370 250L340 280C300 260 270 290 265 330C260 370 290 398 350 395L325 425C255 430 225 390 235 330Z" fill="url(#outer)"/>
+</svg>
