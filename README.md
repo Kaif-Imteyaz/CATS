@@ -50,7 +50,6 @@ CATS functions as an assistive tool, not a replacement for clinical expertise:
 - Culturally adapted exercise content library
 - Real-time pose detection using MediaPipe
 
-
 ## User Interface
 
 <table align="center" cellspacing="20" cellpadding="10">
