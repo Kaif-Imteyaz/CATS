@@ -301,7 +301,10 @@ export default function PhysioDashboard() {
                 <YAxis type="category" dataKey="name" axisLine={false} tickLine={false}
                   tick={{ fontSize: 11, fill: "#8A9E96" }} width={60} />
                 <Tooltip contentStyle={{ borderRadius: "12px", border: "none", fontSize: 12 }}
-                  formatter={(v: number) => [`${v}%`, "Adherence"]} />
+                  formatter={(value: unknown) => {
+  const v = typeof value === "number" ? value : Number(value ?? 0);
+  return [`${v}%`, "Adherence"] as [string, string];
+}} />
                 <Bar dataKey="val" radius={[0, 6, 6, 0]} name="Adherence %">
                   {adherenceData.map(({ val }, i) => (
                     <Cell key={i} fill={val < 50 ? "#D97B5D" : "#2F7E6D"} fillOpacity={0.75} />
