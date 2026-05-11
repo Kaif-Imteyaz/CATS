@@ -110,21 +110,36 @@ export default function PatientHome() {
     setPainSaving(false);
   };
 
-  useEffect(() => {
-    if (!user.id) return;
-    loadDash(user.id);
-    loadTodayPain(user.id);
+useEffect(() => {
+  const userId = user.id;
+  if (!userId) return;
 
-    const channel = supabase
-      .channel(`dash-rt:${user.id}`)
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "sessions", filter: `patient_id=eq.${user.id}` },
-        () => { loadDash(user.id); })
-      .subscribe();
-    channelRef.current = channel;
-    return () => {
-      if (channelRef.current) { supabase.removeChannel(channelRef.current); channelRef.current = null; }
-    };
-  }, [user.id]);
+  loadDash(userId);
+  loadTodayPain(userId);
+
+  const channel = supabase
+    .channel(`dash-rt:${userId}`)
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "sessions",
+        filter: `patient_id=eq.${userId}`,
+      },
+      () => loadDash(userId)
+    )
+    .subscribe();
+
+  channelRef.current = channel;
+
+  return () => {
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+  };
+}, [user.id]);
 
   const plan = dash?.plan;
   const exercises: { name: string }[] = plan?.exercises ?? [];
