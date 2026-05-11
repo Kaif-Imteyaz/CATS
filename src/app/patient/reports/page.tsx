@@ -36,29 +36,47 @@ export default function Reports() {
         setLoading(false); 
       });
 
-    const twoWeeksAgo = new Date();
-    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-    supabase
-      .from("pain_logs")
-      .select("level, logged_at")
-      .eq("patient_id", user.id)
-      .gte("logged_at", twoWeeksAgo.toISOString())
-      .order("logged_at", { ascending: true })
-      .then(({ data }) => {
-        if (!data?.length) return;
-        const now = new Date();
-        const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate() - 7);
-        const thisWeek = (data as PainEntry[]).filter((e) => new Date(e.logged_at) >= weekAgo);
-        const lastWeek = (data as PainEntry[]).filter((e) => new Date(e.logged_at) < weekAgo);
-        const avg = (arr: PainEntry[]) => arr.length ? Math.round((arr.reduce((s, e) => s + e.level, 0) / arr.length) * 10) / 10 : null;
-        setPainWeeks([
-          { label: "This week", avg: avg(thisWeek), entries: thisWeek },
-          { label: "Last week", avg: avg(lastWeek), entries: lastWeek },
-        ]);
-      })
-      .catch((err) => console.error("Pain logs error:", err));
-  }, [user.id, token]);
+   useEffect(() => {
+  if (!user.id || !token) return;
 
+  const loadPainLogs = async () => {
+    try {
+      const twoWeeksAgo = new Date();
+      twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+
+      const { data } = await supabase
+        .from("pain_logs")
+        .select("level, logged_at")
+        .eq("patient_id", user.id)
+        .gte("logged_at", twoWeeksAgo.toISOString())
+        .order("logged_at", { ascending: true });
+
+      if (!data?.length) return;
+
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+
+      const entries = data as PainEntry[];
+      const thisWeek = entries.filter((e) => new Date(e.logged_at) >= weekAgo);
+      const lastWeek = entries.filter((e) => new Date(e.logged_at) < weekAgo);
+
+      const avg = (arr: PainEntry[]) =>
+        arr.length
+          ? Math.round((arr.reduce((s, e) => s + e.level, 0) / arr.length) * 10) / 10
+          : null;
+
+      setPainWeeks([
+        { label: "This week", avg: avg(thisWeek), entries: thisWeek },
+        { label: "Last week", avg: avg(lastWeek), entries: lastWeek },
+      ]);
+    } catch (err) {
+      console.error("Pain logs error:", err);
+    }
+  };
+
+  void loadPainLogs();
+}, [user.id, token]);
+    
   const handlePrint = () => {
     window.print();
   };
