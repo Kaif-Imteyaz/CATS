@@ -1,0 +1,34 @@
+{
+  "name": "CATS - Culturally Adaptive Therapeutic System",
+  "short_name": "CATS",
+  "description": "Your AI-powered physiotherapist for personalized rehabilitation",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4A6FA5",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/Cats logo 1.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "fitness", "medical"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Start Session",
+      "short_name": "Session",
+      "description": "Begin your daily exercise session",
+      "url": "/?action=session"
+    },
+    {
+      "name": "My Health",
+      "short_name": "Health",
+      "description": "View prescriptions and reminders",
+      "url": "/?action=health"
+    }
+  ]
+}
