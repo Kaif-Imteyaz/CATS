@@ -114,7 +114,7 @@ export default function PatientDetail() {
         supabase.from("recommendations").select("id, type, detail, duration, created_at").eq("patient_id", patientId).eq("physio_id", user.id ?? "").order("created_at", { ascending: false }).limit(20),
       ]);
       if (romRes.data) {
-        const map: Record<string, { min: number; max: number }> = {};
+       const map: Record<string, { min: number; max: number; reps?: number }> = {};
         (romRes.data as RomOverride[]).forEach((r) => { map[r.exercise_tag] = { min: r.rom_min, max: r.rom_max, reps: r.reps ?? undefined }; });
         setRomOverrides(map);
       }
