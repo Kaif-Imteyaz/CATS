@@ -6,15 +6,15 @@ import { Badge } from "@/components/ui/badge";
 import { Film, Upload, Trash2, Plus, Loader2, ExternalLink } from "lucide-react";
 import { useApp } from "@/context/AppContext";
 import { api, VideoRecord } from "@/lib/api";
+import { EXERCISE_LIBRARY } from "@/lib/poseEngine";
 
-const PAIN_AREAS = [
-  { value: "lower_back", label: "Lower Back" },
-  { value: "knee", label: "Knee" },
-  { value: "shoulder", label: "Shoulder" },
-  { value: "neck", label: "Neck" },
-  { value: "posture", label: "Posture" },
-  { value: "breathing", label: "Breathing" },
-];
+const toLabel = (tag: string) =>
+  tag.split("-").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" ");
+
+const EXERCISE_TAGS = [...new Set(Object.values(EXERCISE_LIBRARY).map((e) => e.tag))].map((tag) => ({
+  value: tag,
+  label: toLabel(tag),
+}));
 
 const AGE_PRESETS = [
   { label: "18–39", min: 18, max: 39 },
@@ -24,7 +24,7 @@ const AGE_PRESETS = [
   { label: "70+", min: 70, max: 999 },
 ];
 
-const DEFAULT_FORM = { pain_area: "lower_back", age_min: 18, age_max: 39, title: "", url: "" };
+const DEFAULT_FORM = { pain_area: EXERCISE_TAGS[0].value, age_min: 18, age_max: 39, title: "", url: "" };
 
 const MAX_VIDEO_MB = 200;
 const MAX_VIDEO_BYTES = MAX_VIDEO_MB * 1024 * 1024;
@@ -129,14 +129,14 @@ export default function PhysioVideos() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="video-pain-area" className="text-xs font-semibold text-deep/60 mb-1 block">Pain Area</label>
+              <label htmlFor="video-pain-area" className="text-xs font-semibold text-deep/60 mb-1 block">Exercise</label>
               <select
                 id="video-pain-area"
                 value={form.pain_area}
                 onChange={(e) => setForm((p) => ({ ...p, pain_area: e.target.value }))}
                 className="w-full border border-border rounded-2xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/30"
               >
-                {PAIN_AREAS.map((a) => (
+                {EXERCISE_TAGS.map((a) => (
                   <option key={a.value} value={a.value}>{a.label}</option>
                 ))}
               </select>
@@ -249,8 +249,8 @@ export default function PhysioVideos() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: gi * 0.05 }}
             >
-              <h3 className="font-bold text-deep mb-3 capitalize" style={{ fontFamily: "var(--font-poppins)" }}>
-                {area.replace(/_/g, " ")}
+              <h3 className="font-bold text-deep mb-3" style={{ fontFamily: "var(--font-poppins)" }}>
+                {toLabel(area)}
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {vids.map((v) => (

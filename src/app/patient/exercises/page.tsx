@@ -167,18 +167,20 @@ export default function Exercises() {
   const [planLabel, setPlanLabel] = useState("Recovery Plan");
   const [addingEx, setAddingEx] = useState(false);
   const [libSearch, setLibSearch] = useState("");
-  const [video, setVideo] = useState<VideoRecord | null>(null);
-  const [videoLoading, setVideoLoading] = useState(true);
+  const [selectedVideo, setSelectedVideo] = useState<VideoRecord | null>(null);
+  const [selectedVideoLoading, setSelectedVideoLoading] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [selectedEx, setSelectedEx] = useState<ExerciseRow | null>(null);
   const [videoExpanded, setVideoExpanded] = useState(false);
   const [mobileVideoOpen, setMobileVideoOpen] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const videoCacheRef = useRef<Map<string, VideoRecord>>(new Map());
+  const videoPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const userProfileRef = useRef({ age: 50, lang: "en", region: "" });
   const channelRef = useRef<RealtimeChannel | null>(null);
 
-  const clearPoll = useCallback(() => {
-    if (pollRef.current) { clearInterval(pollRef.current); pollRef.current = null; }
+  const clearVideoPoll = useCallback(() => {
+    if (videoPollRef.current) { clearInterval(videoPollRef.current); videoPollRef.current = null; }
   }, []);
 
   useEffect(() => {
@@ -200,6 +202,7 @@ export default function Exercises() {
       const age = profileRes.data?.age ?? 50;
       const profileLang: string = profileRes.data?.lang ?? "en";
       const profileRegion: string = profileRes.data?.region ?? "";
+      userProfileRef.current = { age, lang: profileLang, region: profileRegion };
       const profilePainAreas: string[] = profileRes.data?.pain_areas ?? [];
       const painAreas: string[] = (planRes.data?.pain_areas?.length ? planRes.data.pain_areas : profilePainAreas);
       const painArea = painAreas[0]?.toLowerCase().replace(/ /g, "_") ?? "lower_back";
@@ -235,32 +238,52 @@ export default function Exercises() {
       setPlanLabel(`${painArea.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase())} Recovery`);
       setPlanLoading(false);
       console.log(`[CATS] exercises load: ${(performance.now() - t0).toFixed(1)}ms`);
-
-      try {
-        const vid = await api.video.exercise(painArea, age, token, profileLang, profileRegion);
-        setVideo(vid);
-        if (vid.status === "pending") {
-          setShowPopup(true);
-          setTimeout(() => setShowPopup(false), 10000);
-          pollRef.current = setInterval(async () => {
-            try {
-              const updated = await api.video.status(vid.id, token);
-              setVideo(updated);
-              if (updated.status !== "pending") clearPoll();
-            } catch { clearPoll(); }
-          }, 4000);
-        }
-      } catch { /* silent */ } finally {
-        setVideoLoading(false);
-      }
     });
-    return () => clearPoll();
-  }, [user.id, token, clearPoll]);
+    return () => clearVideoPoll();
+  }, [user.id, token, clearVideoPoll]);
 
   useEffect(() => {
     const current = exercises.find((e) => e.status === "current");
     setSelectedEx(current ?? exercises[0] ?? null);
   }, [exercises]);
+
+  useEffect(() => {
+    if (!selectedEx || !token) return;
+    const tag = selectedEx.tag;
+
+    const cached = videoCacheRef.current.get(tag);
+    if (cached) {
+      setSelectedVideo(cached);
+      return;
+    }
+
+    clearVideoPoll();
+    setSelectedVideo(null);
+    setSelectedVideoLoading(true);
+
+    const { age, lang, region } = userProfileRef.current;
+    api.video.exercise(tag, age, token, lang, region)
+      .then((vid) => {
+        videoCacheRef.current.set(tag, vid);
+        setSelectedVideo(vid);
+        if (vid.status === "pending") {
+          setShowPopup(true);
+          setTimeout(() => setShowPopup(false), 10000);
+          videoPollRef.current = setInterval(async () => {
+            try {
+              const updated = await api.video.status(vid.id, token);
+              if (updated.status !== "pending") {
+                videoCacheRef.current.set(tag, updated);
+                setSelectedVideo(updated);
+                clearVideoPoll();
+              }
+            } catch { clearVideoPoll(); }
+          }, 4000);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setSelectedVideoLoading(false));
+  }, [selectedEx?.tag, token, clearVideoPoll]);
 
   useEffect(() => {
     if (!user.id) return;
@@ -426,17 +449,17 @@ export default function Exercises() {
             ))}
           </div>
 
-          {!videoLoading && video?.status === "pending" && (
+          {!selectedVideoLoading && selectedVideo?.status === "pending" && (
             <div className="mb-4 bg-white rounded-2xl p-3.5 border border-border flex items-center gap-3">
               <Loader2 className="w-4 h-4 text-primary animate-spin flex-shrink-0" />
               <div>
                 <p className="text-xs font-semibold text-deep">Generating exercise demo…</p>
-                <p className="text-[10px] text-deep/35 mt-0.5">1–2 minutes · Updates automatically</p>
+                <p className="text-[10px] text-deep/35 mt-0.5">1-2 minutes · Updates automatically</p>
               </div>
             </div>
           )}
 
-          {!videoLoading && video?.status === "ready" && video.url && (
+          {!selectedVideoLoading && selectedVideo?.status === "ready" && selectedVideo.url && (
             <div className="mb-4 lg:hidden">
               <button
                 onClick={() => setMobileVideoOpen((p) => !p)}
@@ -461,7 +484,7 @@ export default function Exercises() {
                       <div className="relative">
                         <video
                           ref={videoRef}
-                          src={video.url}
+                          src={selectedVideo!.url}
                           controls
                           className="w-full max-h-52 bg-black object-cover"
                           preload="metadata"
@@ -476,7 +499,7 @@ export default function Exercises() {
                       </div>
                       <div className="px-3 py-2 flex items-center gap-2">
                         <Badge className="bg-primary/10 text-primary border-0 text-[10px]">Demo</Badge>
-                        <p className="text-xs text-deep/50 truncate">{video.title}</p>
+                        <p className="text-xs text-deep/50 truncate">{selectedVideo!.title}</p>
                       </div>
                     </div>
                   </motion.div>
@@ -529,16 +552,16 @@ export default function Exercises() {
 
         <div className="hidden lg:block lg:col-span-2">
           <div className="sticky top-6 space-y-4">
-            {videoLoading ? (
+            {selectedVideoLoading ? (
               <div className="bg-white rounded-3xl aspect-video flex items-center justify-center border border-border">
                 <Loader2 className="w-5 h-5 text-primary/40 animate-spin" />
               </div>
-            ) : video?.status === "ready" && video.url ? (
+            ) : selectedVideo?.status === "ready" && selectedVideo.url ? (
               <div className="bg-white rounded-3xl overflow-hidden border border-border">
                 <div className="relative">
                   <video
                     ref={videoRef}
-                    src={video.url}
+                    src={selectedVideo.url}
                     controls
                     className="w-full aspect-video bg-black object-cover"
                     preload="metadata"
@@ -553,10 +576,10 @@ export default function Exercises() {
                 </div>
                 <div className="px-4 py-3 flex items-center gap-2">
                   <Badge className="bg-primary/10 text-primary border-0 text-[10px]">Demo</Badge>
-                  <p className="text-xs text-deep/50 truncate">{video.title}</p>
+                  <p className="text-xs text-deep/50 truncate">{selectedVideo.title}</p>
                 </div>
               </div>
-            ) : video?.status === "pending" ? (
+            ) : selectedVideo?.status === "pending" ? (
               <div className="bg-white rounded-3xl aspect-video border border-border flex flex-col items-center justify-center gap-3 p-6 text-center">
                 <Loader2 className="w-6 h-6 text-primary animate-spin" />
                 <div>

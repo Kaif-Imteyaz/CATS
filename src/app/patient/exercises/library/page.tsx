@@ -26,7 +26,7 @@ export default function ExerciseLibrary() {
   const allExercises = Object.values(EXERCISE_LIBRARY);
   const filtered = filter === "All" ? allExercises : allExercises.filter((e) => e.target === filter);
 
-  const toggleCard = async (tag: string, target: string) => {
+  const toggleCard = async (tag: string) => {
     const key = tag;
     if (expanded === key) { setExpanded(null); return; }
     setExpanded(key);
@@ -34,15 +34,10 @@ export default function ExerciseLibrary() {
     if (!token || videos[key] !== undefined) return;
     try {
       import("@/lib/supabaseClient").then(async ({ supabase }) => {
-        const areaMap: Record<string, string> = {
-          Knee: "knee", Shoulder: "shoulder", Hip: "posture",
-          "Lower Back": "lower_back", Neck: "neck", "Full Body": "breathing",
-        };
-        const area = areaMap[target] ?? "lower_back";
         const { data } = await supabase
           .from("exercise_videos")
           .select("url, status")
-          .eq("pain_area", area)
+          .eq("pain_area", tag)
           .eq("status", "ready")
           .limit(1)
           .maybeSingle();
@@ -105,7 +100,7 @@ export default function ExerciseLibrary() {
             >
               <button
                 className="w-full text-left p-4"
-                onClick={() => toggleCard(key, ex.target)}
+                onClick={() => toggleCard(key)}
                 aria-expanded={isOpen}
               >
                 <div className="flex items-start justify-between gap-2 mb-3">
