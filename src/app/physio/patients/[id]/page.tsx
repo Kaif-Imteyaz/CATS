@@ -572,7 +572,8 @@ export default function PatientDetail() {
                       <LineChart data={weekData}>
                         <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#8A9E96" }} />
                         <YAxis hide domain={[0, 10]} />
-                        <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", fontSize: 12 }} formatter={(v: number) => [v > 0 ? v : "No data", "Pain"]} />
+                        <Tooltip contentStyle={{ borderRadius: "12px", border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.08)", fontSize: 12 }} formatter={(value): [string | number, string] => { const v = typeof value === "number" ? value : Number(value ?? 0);
+                            return [v > 0 ? v : "No data", "Pain"]; }} />
                         <Line type="monotone" dataKey="pain" stroke="#D97B5D" strokeWidth={2.5} dot={{ fill: "#D97B5D", r: 4, strokeWidth: 0 }} name="Pain" />
                       </LineChart>
                     </ResponsiveContainer>
