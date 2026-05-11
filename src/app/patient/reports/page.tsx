@@ -35,12 +35,13 @@ export default function Reports() {
         setError(`Could not load report. ${err.message ? `(${err.message})` : ""}`); 
         setLoading(false); 
       });
+  }[user.id, token]);
 
    useEffect(() => {
-  if (!user.id || !token) return;
+     if (!user.id || !token) return;
 
-  const loadPainLogs = async () => {
-    try {
+   const loadPainLogs = async () => {
+     try {
       const twoWeeksAgo = new Date();
       twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
@@ -73,7 +74,6 @@ export default function Reports() {
       console.error("Pain logs error:", err);
     }
   };
-
   void loadPainLogs();
 }, [user.id, token]);
     
