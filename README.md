@@ -24,16 +24,3 @@ A physiotherapy platform connecting patients and physiotherapists. Patients foll
 - Upload or manage exercise demo videos
 
 ---
-
-## Stack
-
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 15 · TypeScript · Tailwind CSS · shadcn/ui · Framer Motion |
-| Pose tracking | MediaPipe Tasks Vision (browser, GPU → CPU fallback) |
-| Backend | FastAPI · Python 3.11 |
-| Database | Supabase (Postgres + Auth + Storage + Realtime) |
-| AI | Anthropic Claude (plan generation, posture analysis, weekly reports) |
-| Deploy | Vercel (frontend) · Railway (backend) |
-
----
