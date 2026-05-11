@@ -4,21 +4,21 @@ import { Star } from "lucide-react";
 
 const reviews = [
   {
-    name: "Maria González",
+    name: "Kaif I",
     role: "Knee recovery",
     text: "After my surgery I was worried about exercising on my own. CATS kept me on track and my physiotherapist could see my progress without me needing to come in every week.",
     stars: 5,
     weeks: "6 weeks",
   },
   {
-    name: "Ahmed Khan",
+    name: "Ayush K",
     role: "Lower back pain",
     text: "Being able to follow along in Hindi made a real difference. The instructions were clear and I never felt lost during a session.",
     stars: 5,
     weeks: "4 weeks",
   },
   {
-    name: "Priya Sharma",
+    name: "Sara A",
     role: "Shoulder rehabilitation",
     text: "My physiotherapist updated my plan based on what she saw in my sessions. That kind of back-and-forth is hard to get when you're doing home rehab.",
     stars: 5,

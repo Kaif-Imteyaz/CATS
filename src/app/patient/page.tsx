@@ -180,7 +180,7 @@ useEffect(() => {
           <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-white/5 rounded-full" />
           <p className="text-white/70 text-sm mb-1">{t("today")}</p>
           <h2 className="text-2xl font-bold mb-4" style={{ fontFamily: "var(--font-poppins)" }}>
-            {planName}{planDay > 0 ? ` — Day ${planDay}` : ""}
+            {planName}{planDay > 0 ? ` · Day ${planDay}` : ""}
           </h2>
           <div className="mb-4">
             <div className="flex justify-between text-sm mb-2">
