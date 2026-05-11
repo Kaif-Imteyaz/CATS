@@ -42,7 +42,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-white/45 text-sm leading-relaxed mb-5 max-w-xs">
-              AI-powered rehabilitation guided by real physiotherapists — adapted for your culture, language, and recovery goals.
+              AI-powered rehabilitation guided by real physiotherapists - adapted for your culture, language, and recovery goals.
             </p>
             <div className="flex flex-wrap gap-2 mb-5">
               {langs.map((l) => (
